@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>J.A.R.V.I.S. – Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root{--bg:#04080f;--bg-2:#071420;--cyan:#36d1ff;--cyan-soft:#7fe3ff;--cyan-dim:#1c6e8c;--gold:#ffb347;--text:#cfeefc;--text-dim:#6f93a6;--danger:#ff5a5a;--ok:#3affa0}
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;background:radial-gradient(circle at 50% -10%,#0a2233 0%,var(--bg) 55%);color:var(--text);font-family:"Rajdhani",system-ui,sans-serif;overflow:hidden}
+    .grid-overlay{position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(54,209,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(54,209,255,.04) 1px,transparent 1px);background-size:40px 40px;z-index:0}
+    .top-bar{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:18px 28px;border-bottom:1px solid rgba(54,209,255,.15);backdrop-filter:blur(4px)}
+    .brand{display:flex;align-items:center;gap:16px}
+    .reactor{width:46px;height:46px;border-radius:50%;background:radial-gradient(circle,#fff 0%,var(--cyan-soft) 25%,var(--cyan) 45%,transparent 70%);box-shadow:0 0 18px var(--cyan),0 0 40px rgba(54,209,255,.5);animation:pulse 3s ease-in-out infinite}
+    .reactor.speaking{animation:pulse .6s ease-in-out infinite}
+    .reactor.listening{background:radial-gradient(circle,#fff 0%,#ffe1a8 25%,var(--gold) 45%,transparent 70%);box-shadow:0 0 18px var(--gold),0 0 40px rgba(255,179,71,.5)}
+    @keyframes pulse{0%,100%{transform:scale(1);opacity:.92}50%{transform:scale(1.12);opacity:1}}
+    .titles h1{margin:0;font-family:"Orbitron",sans-serif;font-size:22px;letter-spacing:4px;color:#fff;text-shadow:0 0 12px var(--cyan)}
+    .subtitle{font-size:12px;letter-spacing:1px;color:var(--text-dim)}
+    .status-cluster{display:flex;gap:10px;flex-wrap:wrap}
+    .status-pill{font-size:12px;letter-spacing:1px;padding:5px 12px;border-radius:20px;border:1px solid rgba(54,209,255,.3);color:var(--text-dim);background:rgba(7,20,32,.6);white-space:nowrap}
+    .status-pill.off{color:var(--danger);border-color:rgba(255,90,90,.4)}
+    .chat-wrap{position:relative;z-index:1;display:flex;flex-direction:column;height:calc(100% - 83px);max-width:860px;margin:0 auto;padding:0 16px 16px}
+    .messages{flex:1;overflow-y:auto;padding:24px 6px;display:flex;flex-direction:column;gap:16px;scrollbar-width:thin;scrollbar-color:var(--cyan-dim) transparent}
+    .messages::-webkit-scrollbar{width:6px}.messages::-webkit-scrollbar-thumb{background:var(--cyan-dim);border-radius:3px}
+    .msg{display:flex}.msg.user{justify-content:flex-end}
+    .msg .bubble{max-width:78%;padding:12px 16px;border-radius:14px;line-height:1.5;font-size:16px;white-space:pre-wrap;word-wrap:break-word}
+    .msg.jarvis .bubble{background:linear-gradient(135deg,rgba(28,110,140,.25),rgba(54,209,255,.08));border:1px solid rgba(54,209,255,.3);border-left:3px solid var(--cyan);color:var(--text);box-shadow:0 0 20px rgba(54,209,255,.08)}
+    .msg.user .bubble{background:rgba(255,179,71,.1);border:1px solid rgba(255,179,71,.3);border-right:3px solid var(--gold);color:#ffe8c7}
+    .typing .bubble{color:var(--text-dim);font-style:italic}
+    .dots span{animation:blink 1.4s infinite both}.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+    @keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+    .suggestions{display:flex;flex-wrap:wrap;gap:8px;padding:0 6px 12px;justify-content:center}
+    .suggestions.hidden{display:none}
+    .chip{font-family:inherit;font-size:13px;color:var(--cyan-soft);background:rgba(54,209,255,.07);border:1px solid rgba(54,209,255,.25);border-radius:16px;padding:6px 13px;cursor:pointer;transition:all .15s ease}
+    .chip:hover{background:rgba(54,209,255,.18);box-shadow:0 0 12px rgba(54,209,255,.3)}
+    .composer{display:flex;align-items:flex-end;gap:10px;padding:12px;background:rgba(7,20,32,.7);border:1px solid rgba(54,209,255,.25);border-radius:16px;backdrop-filter:blur(6px)}
+    #input{flex:1;resize:none;max-height:140px;background:transparent;border:none;outline:none;color:var(--text);font-family:inherit;font-size:16px;line-height:1.4;padding:8px 4px}
+    #input::placeholder{color:var(--text-dim)}
+    .mic-btn,.send-btn,.voice-toggle{flex:0 0 auto;display:grid;place-items:center;width:44px;height:44px;border-radius:12px;border:1px solid rgba(54,209,255,.3);background:rgba(54,209,255,.08);color:var(--cyan);cursor:pointer;transition:all .15s ease}
+    .mic-btn:hover,.send-btn:hover,.voice-toggle:hover{background:rgba(54,209,255,.2);box-shadow:0 0 14px rgba(54,209,255,.4)}
+    .send-btn{background:var(--cyan);color:#04080f;border-color:var(--cyan)}.send-btn:hover{box-shadow:0 0 18px var(--cyan)}
+    .mic-btn.recording{background:var(--gold);color:#04080f;border-color:var(--gold);animation:micpulse 1s infinite}
+    @keyframes micpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,179,71,.6)}50%{box-shadow:0 0 0 8px rgba(255,179,71,0)}}
+    .voice-toggle.off{color:var(--text-dim);border-color:rgba(111,147,166,.3);background:transparent}
+    .hint{text-align:center;font-size:13px;letter-spacing:1px;color:var(--gold);height:18px;margin-top:8px}
+    @media (max-width:600px){.subtitle{display:none}.titles h1{font-size:18px}.msg .bubble{max-width:88%;font-size:15px}}
+  </style>
+</head>
+<body>
+  <div class="grid-overlay"></div>
+  <header class="top-bar">
+    <div class="brand">
+      <div class="reactor" id="reactor"></div>
+      <div class="titles">
+        <h1>J.A.R.V.I.S.</h1>
+        <span class="subtitle">Just A Rather Very Intelligent System</span>
+      </div>
+    </div>
+    <div class="status-cluster">
+      <span class="status-pill off">Demo-Modus (offline)</span>
+    </div>
+  </header>
+
+  <main class="chat-wrap">
+    <div id="messages" class="messages">
+      <div class="msg jarvis"><div class="bubble">Systeme hochgefahren. Guten Tag — wie kann ich Sie unterstützen? (Dies ist die Offline-Demo: simulierte Antworten, kein API-Key nötig.)</div></div>
+    </div>
+
+    <div class="suggestions" id="suggestions">
+      <button class="chip">Was kannst du?</button>
+      <button class="chip">Schalte das Licht im Wohnzimmer ein</button>
+      <button class="chip">Stelle das Wohnzimmer auf 22 Grad</button>
+      <button class="chip">Status</button>
+      <button class="chip">Wie spät ist es?</button>
+      <button class="chip">Erzähl mir einen Spruch</button>
+    </div>
+
+    <div class="composer">
+      <button id="mic-btn" class="mic-btn" title="Sprechen"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2Z" fill="currentColor"/></svg></button>
+      <textarea id="input" rows="1" placeholder="Nachricht an Jarvis … (Enter zum Senden)"></textarea>
+      <button id="send-btn" class="send-btn" title="Senden"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M3 20.5 21 12 3 3.5 3 10l13 2-13 2z" fill="currentColor"/></svg></button>
+      <button id="voice-toggle" class="voice-toggle on" title="Sprachausgabe an/aus"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 10v4h4l5 5V5L7 10H3Zm13.5 2a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4Z" fill="currentColor"/></svg></button>
+    </div>
+    <div class="hint" id="listening-hint"></div>
+  </main>
+
+  <script>
+  // ── Simulierter Zustand (im Browser) ───────────────────────────────
+  const LIGHTS = {
+    wohnzimmer:{name:"Wohnzimmer",on:false}, "küche":{name:"Küche",on:true},
+    schlafzimmer:{name:"Schlafzimmer",on:false}, "büro":{name:"Büro",on:false},
+    bad:{name:"Bad",on:false}
+  };
+  const CLIMATE = { wohnzimmer:{name:"Wohnzimmer",temp:21.5}, schlafzimmer:{name:"Schlafzimmer",temp:19.0} };
+  const COVERS = { wohnzimmer:{name:"Wohnzimmer",open:true}, schlafzimmer:{name:"Schlafzimmer",open:false} };
+  const MEDIA = { playing:false, track:"Back In Black – AC/DC" };
+  const QUOTES = [
+    "„Manchmal muss man rennen, bevor man laufen kann.“ – Tony Stark",
+    "„Ich bin Iron Man.“ Aber Sie, Sir, sind das Genie dahinter.",
+    "Geduld, Sir – auch ein Arc-Reaktor wurde nicht an einem Tag gebaut.",
+    "Wie Mr. Stark zu sagen pflegte: Wenn man scheitert, scheitert man großartig."
+  ];
+  const ROOMS_TEXT = "Wohnzimmer, Küche, Schlafzimmer, Büro und Bad";
+
+  const findRoom = (t,tab)=>{ for(const k in tab){ if(t.includes(k)||t.includes(tab[k].name.toLowerCase())) return k; } return null; };
+  const lightsSummary = ()=>Object.values(LIGHTS).map(d=>`${d.name}: ${d.on?"an":"aus"}`).join("; ");
+  function safeMath(expr){
+    const c = expr.replace(/x/g,"*").replace(/÷/g,"/").replace(/,/g,".");
+    if(!/^[\d\s+\-*/().]+$/.test(c)) return null;
+    if(!/\d\s*[+\-*/]/.test(c)) return null;
+    try{ const r = Function('"use strict";return ('+c+')')(); if(typeof r!=="number"||!isFinite(r)) return null;
+      return Number.isInteger(r)?String(r):String(r); }catch(e){ return null; }
+  }
+  function weather(){ const cs=["heiter","leicht bewölkt","sonnig","wechselhaft"]; const t=14+Math.floor(Math.random()*11);
+    return `Simulierte Wetterdaten, Sir: aktuell ${cs[Math.floor(Math.random()*cs.length)]} bei ${t} °C. Mit einem hinterlegten Wetter-Dienst liefere ich echte Werte.`; }
+
+  // ── Demo-Antwortlogik (Port von backend/demo.py) ───────────────────
+  function demoReply(message){
+    const text = message.toLowerCase().trim();
+    if(/\b(hallo|hi|hey|guten (tag|morgen|abend)|servus|moin|jarvis)\b/.test(text) && text.length<30)
+      return "Guten Tag, Sir. J.A.R.V.I.S. im Demo-Modus zu Diensten. Mein volles Superhirn ist offline (kein API-Key), doch ich kann bereits einiges vorführen. Sagen Sie „Was kannst du?“ für eine Übersicht.";
+    if(/(was kannst du|hilfe|fähigkeit|kommandos|befehle|help|menü)/.test(text))
+      return "Im Demo-Modus stehe ich Ihnen mit Folgendem zur Verfügung, Sir:\n• 💡 Licht: „Schalte das Licht im Büro ein“, „Alle Lichter aus“\n• 🌡️ Heizung: „Stelle das Wohnzimmer auf 22 Grad“\n• 🪟 Rollläden: „Fahre die Rollläden im Schlafzimmer hoch/runter“\n• 🎵 Musik: „Spiele Musik“ / „Stopp die Musik“\n• 📋 Status: „Status“ oder „Welche Geräte sind an?“\n• ⏱️ Timer: „Stelle einen Timer auf 5 Minuten“\n• 🌦️ Wetter, 🧮 Rechnen, 🕐 Uhrzeit, und der eine oder andere Stark-Spruch.\nFür freie Unterhaltung hinterlegen Sie bitte einen ANTHROPIC_API_KEY.";
+    if(/(wer bist du|was bist du|stell dich vor|wie heißt du)/.test(text))
+      return "Ich bin J.A.R.V.I.S. – Just A Rather Very Intelligent System –, Ihr persönlicher Assistent nach dem Vorbild von Tony Starks KI. Derzeit im Demo-Modus; mit API-Key stehe ich Ihnen mit vollem Verstand zur Seite.";
+    if(/(uhrzeit|wie spät|wieviel uhr|datum|welcher tag|welches datum)/.test(text)){
+      const n=new Date(); return `Es ist ${String(n.getHours()).padStart(2,"0")}:${String(n.getMinutes()).padStart(2,"0")} Uhr am ${n.toLocaleDateString("de-DE",{weekday:"long",day:"2-digit",month:"2-digit",year:"numeric"})}, Sir.`;
+    }
+    if(/(status|welche (geräte|lichter)|was ist an|übersicht|zustand)/.test(text)){
+      const klima=Object.values(CLIMATE).map(c=>`${c.name}: ${c.temp.toFixed(1)} °C`).join("; ");
+      const musik=MEDIA.playing?`läuft (${MEDIA.track})`:"aus";
+      return `Systemübersicht, Sir:\n💡 Licht – ${lightsSummary()}\n🌡️ Heizung – ${klima}\n🎵 Musik – ${musik}`;
+    }
+    if(/alle? licht/.test(text)){ const on=/\b(an|ein)\b/.test(text); for(const k in LIGHTS) LIGHTS[k].on=on;
+      return `Sämtliche Lichter wurden ${on?"eingeschaltet":"ausgeschaltet"}, Sir.`; }
+    if(/(heizung|thermostat|temperatur|grad)/.test(text)){
+      const room=findRoom(text,CLIMATE); const m=text.match(/(\d{1,2})(?:[.,](\d))?\s*(?:grad|°)/);
+      if(m){ const v=parseFloat(m[1]+(m[2]?"."+m[2]:"")); const t=room||"wohnzimmer";
+        if(!CLIMATE[t]) CLIMATE[t]={name:t[0].toUpperCase()+t.slice(1),temp:v}; CLIMATE[t].temp=v;
+        return `Erledigt, Sir. Die Zieltemperatur im ${CLIMATE[t].name} steht nun bei ${v.toFixed(1)} °C. (Simuliert.)`; }
+      if(room) return `Im ${CLIMATE[room].name} sind aktuell ${CLIMATE[room].temp.toFixed(1)} °C eingestellt.`;
+      const klima=Object.values(CLIMATE).map(c=>`${c.name}: ${c.temp.toFixed(1)} °C`).join("; ");
+      return `Aktuelle Heizungssollwerte – ${klima}. Auf wie viel Grad darf ich stellen?`;
+    }
+    if(/(rolll?äden|rolll?aden|rollo|jalousie|vorhang|markise)/.test(text)){
+      const room=findRoom(text,COVERS)||"wohnzimmer";
+      if(/\b(hoch|auf|öffn|rauf)\b/.test(text)){ COVERS[room].open=true; return `Die Rollläden im ${COVERS[room].name} sind nun oben, Sir.`; }
+      if(/\b(runter|zu|schließ|rab|herunter)\b/.test(text)){ COVERS[room].open=false; return `Die Rollläden im ${COVERS[room].name} sind nun unten, Sir.`; }
+      return "Soll ich die Rollläden hoch- oder herunterfahren?";
+    }
+    if(/(musik|song|lied|spiel|abspiel|media|radio)/.test(text)){
+      if(/\b(stopp|stop|aus|pause|halt)\b/.test(text)){ MEDIA.playing=false; return "Musik gestoppt, Sir."; }
+      MEDIA.playing=true; return `Ich spiele „${MEDIA.track}“, Sir. Viel Vergnügen.`;
+    }
+    if(/(licht|lampe|beleuchtung)/.test(text)){
+      const on=/\b(an|ein|einschalt|anschalt|leucht|hell)\b/.test(text);
+      const off=/\b(aus|ausschalt|abschalt|dunkel)\b/.test(text);
+      const room=findRoom(text,LIGHTS);
+      if(room===null) return `In welchem Raum, Sir? Verfügbar: ${ROOMS_TEXT}.`;
+      if(!on&&!off) return `Soll ich das Licht im ${LIGHTS[room].name} ein- oder ausschalten?`;
+      LIGHTS[room].on=on;
+      return `Erledigt, Sir. Das Licht im ${LIGHTS[room].name} ist nun ${on?"eingeschaltet":"ausgeschaltet"}. (Simuliert – mit echtem Home Assistant schalte ich das reale Gerät.)`;
+    }
+    if(/(timer|wecker|erinner|countdown)/.test(text)){
+      const m=text.match(/(\d{1,3})\s*(sekunde|minute|stunde)/);
+      if(m) return `Timer über ${m[1]} ${m[2]}n gestellt, Sir. (Simuliert – es ertönt kein echter Alarm, doch ich habe ihn notiert.)`;
+      return "Auf wie lange darf ich den Timer stellen, Sir?";
+    }
+    if(/(wetter|regen|sonne|temperatur draußen|kalt|warm draußen)/.test(text)) return weather();
+    const mathInput=text.replace(/rechne|wieviel ist|was ist|=/g,"").trim();
+    const mr=safeMath(mathInput); if(mr!==null) return `Das ergibt ${mr}, Sir.`;
+    if(/(danke|vielen dank|merci|super|klasse)/.test(text)) return "Stets zu Diensten, Sir.";
+    if(/(witz|spruch|zitat|motivier|langweilig)/.test(text)) return QUOTES[Math.floor(Math.random()*QUOTES.length)];
+    if(/(tschüss|bye|ciao|gute nacht|bis später)/.test(text)) return "Bis bald, Sir. Ich halte die Systeme bereit.";
+    return "Im Demo-Modus ist mein Repertoire begrenzt, Sir. Sagen Sie „Was kannst du?“ für eine Übersicht – etwa Licht und Heizung steuern, Status abfragen, rechnen oder die Uhrzeit erfragen. Für freie Unterhaltung und mein volles Können hinterlegen Sie bitte einen ANTHROPIC_API_KEY.";
+  }
+
+  // ── UI-Logik ───────────────────────────────────────────────────────
+  const messagesEl=document.getElementById("messages"), inputEl=document.getElementById("input"),
+        sendBtn=document.getElementById("send-btn"), micBtn=document.getElementById("mic-btn"),
+        voiceToggle=document.getElementById("voice-toggle"), reactor=document.getElementById("reactor"),
+        listeningHint=document.getElementById("listening-hint"), suggestions=document.getElementById("suggestions");
+  let voiceEnabled=localStorage.getItem("jarvis_voice")!=="off";
+  updateVoiceToggle();
+
+  function addMessage(text,who){ const w=document.createElement("div"); w.className=`msg ${who}`;
+    const b=document.createElement("div"); b.className="bubble"; b.textContent=text; w.appendChild(b);
+    messagesEl.appendChild(w); messagesEl.scrollTop=messagesEl.scrollHeight; }
+
+  function send(text){
+    const msg=(text??inputEl.value).trim(); if(!msg) return;
+    if(suggestions) suggestions.classList.add("hidden");
+    addMessage(msg,"user"); inputEl.value=""; autoGrow();
+    const typing=document.createElement("div"); typing.className="msg jarvis typing";
+    typing.innerHTML='<div class="bubble dots">Verarbeite<span>.</span><span>.</span><span>.</span></div>';
+    messagesEl.appendChild(typing); messagesEl.scrollTop=messagesEl.scrollHeight;
+    setTimeout(()=>{ typing.remove(); const reply=demoReply(msg); addMessage(reply,"jarvis"); speak(reply); }, 450);
+  }
+  sendBtn.addEventListener("click",()=>send());
+  inputEl.addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); send(); } });
+  function autoGrow(){ inputEl.style.height="auto"; inputEl.style.height=Math.min(inputEl.scrollHeight,140)+"px"; }
+  inputEl.addEventListener("input",autoGrow);
+  if(suggestions) suggestions.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{ suggestions.classList.add("hidden"); send(c.textContent); }));
+
+  function speak(text){
+    if(!voiceEnabled||!("speechSynthesis"in window)) return;
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text.replace(/[💡🌡️🪟🎵📋⏱️🌦️🧮🕐•]/g,"")); u.lang="de-DE"; u.rate=1; u.pitch=.9;
+    const vs=window.speechSynthesis.getVoices();
+    const pref=vs.find(v=>v.lang.startsWith("de")&&/male|männ|Markus|Conrad/i.test(v.name))||vs.find(v=>v.lang.startsWith("de"));
+    if(pref) u.voice=pref;
+    u.onstart=()=>reactor.classList.add("speaking"); u.onend=()=>reactor.classList.remove("speaking");
+    window.speechSynthesis.speak(u);
+  }
+  voiceToggle.addEventListener("click",()=>{ voiceEnabled=!voiceEnabled; localStorage.setItem("jarvis_voice",voiceEnabled?"on":"off"); if(!voiceEnabled) window.speechSynthesis.cancel(); updateVoiceToggle(); });
+  function updateVoiceToggle(){ voiceToggle.classList.toggle("on",voiceEnabled); voiceToggle.classList.toggle("off",!voiceEnabled); voiceToggle.title=voiceEnabled?"Sprachausgabe AN":"Sprachausgabe AUS"; }
+
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition; let rec=null,listening=false;
+  if(SR){ rec=new SR(); rec.lang="de-DE"; rec.interimResults=true; rec.continuous=false;
+    rec.onstart=()=>{ listening=true; micBtn.classList.add("recording"); reactor.classList.add("listening"); listeningHint.textContent="Ich höre zu …"; };
+    rec.onerror=e=>{ listeningHint.textContent=e.error==="not-allowed"?"Mikrofonzugriff verweigert.":"Spracherkennung fehlgeschlagen."; };
+    rec.onend=()=>{ listening=false; micBtn.classList.remove("recording"); reactor.classList.remove("listening"); setTimeout(()=>listeningHint.textContent="",1500); };
+    rec.onresult=ev=>{ let t=""; for(let i=0;i<ev.results.length;i++) t+=ev.results[i][0].transcript; inputEl.value=t; autoGrow();
+      if(ev.results[ev.results.length-1].isFinal){ const f=t.trim(); if(f) send(f); } };
+    micBtn.addEventListener("click",()=>{ if(listening){ rec.stop(); } else { window.speechSynthesis.cancel(); try{ rec.start(); }catch(e){} } });
+  } else { micBtn.disabled=true; micBtn.title="Spracheingabe in diesem Browser nicht verfügbar (Chrome empfohlen)"; micBtn.style.opacity=".4"; }
+  if("speechSynthesis"in window) window.speechSynthesis.onvoiceschanged=()=>{};
+  </script>
+</body>
+</html>
