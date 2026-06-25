@@ -25,7 +25,7 @@ async function refreshStatus() {
       statusBrain.classList.add("ok");
       statusBrain.classList.remove("off");
     } else {
-      statusBrain.textContent = "Kern: kein API-Key";
+      statusBrain.textContent = "Kern: Demo-Modus (kein API-Key)";
       statusBrain.classList.add("off");
     }
   } catch {

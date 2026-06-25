@@ -7,6 +7,7 @@ from typing import Any
 from anthropic import AsyncAnthropic
 
 from .config import get_settings
+from .demo import demo_reply
 from .tools import TOOLS, execute_tool
 
 MAX_TOKENS = 2048
@@ -61,10 +62,17 @@ class Jarvis:
         Die Tool-Use-Schleife wird intern abgewickelt; zurück kommt reiner Text.
         """
         if self._client is None:
-            return (
-                "Mein Sprachzentrum ist offline – es fehlt der ANTHROPIC_API_KEY. "
-                "Bitte trage ihn in der .env-Datei ein, dann stehe ich zur Verfügung."
+            # Kein API-Key -> regelbasierter Demo-Modus, damit man Jarvis auch
+            # ohne Einrichtung ausprobieren kann.
+            last_user = next(
+                (
+                    m["content"]
+                    for m in reversed(history)
+                    if m.get("role") == "user" and isinstance(m.get("content"), str)
+                ),
+                "",
             )
+            return demo_reply(last_user)
 
         settings = self._settings
         messages = list(history)
