@@ -9,6 +9,7 @@ const reactor = document.getElementById("reactor");
 const listeningHint = document.getElementById("listening-hint");
 const statusBrain = document.getElementById("status-brain");
 const statusHome = document.getElementById("status-home");
+const suggestions = document.getElementById("suggestions");
 
 let sessionId = localStorage.getItem("jarvis_session") || null;
 let voiceEnabled = localStorage.getItem("jarvis_voice") !== "off";
@@ -79,6 +80,7 @@ async function sendMessage(text) {
   if (!message || isBusy) return;
 
   isBusy = true;
+  if (suggestions) suggestions.classList.add("hidden");
   addMessage(message, "user");
   inputEl.value = "";
   autoGrow();
@@ -108,6 +110,16 @@ async function sendMessage(text) {
   } finally {
     isBusy = false;
   }
+}
+
+// Klickbare Beispiel-Vorschläge (Demo)
+if (suggestions) {
+  suggestions.querySelectorAll(".chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      suggestions.classList.add("hidden");
+      sendMessage(chip.textContent);
+    });
+  });
 }
 
 sendBtn.addEventListener("click", () => sendMessage());
