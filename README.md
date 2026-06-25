@@ -22,7 +22,25 @@
 
 ---
 
-## 🚀 Schnellstart
+## ⚡ Schnellster Weg: eine Datei öffnen (kein Server)
+
+In `docs/index.html` liegt ein **vollständiger Jarvis als einzelne Datei** mit
+animiertem Arc-Reactor-HUD. Einfach im Browser öffnen (Doppelklick) und über das
+**Zahnrad oben rechts** deinen Anthropic-API-Key eintragen — dann spricht Jarvis
+**direkt mit Claude** (Browser → Anthropic API), inklusive Sprache und optionaler
+Home-Assistant-Steuerung. Ohne Key läuft ein eingeschränkter Demo-Modus.
+
+- Hosten unter einer echten URL via GitHub Pages: Repo → **Settings → Pages** →
+  Branch wählen, Ordner `/docs` → `https://<owner>.github.io/jarvis/`
+- Sprache/Mikrofon am besten in **Chrome**.
+- Hinweis: Der API-Key liegt nur lokal im Browser (localStorage). Nutze die Seite
+  auf deinem eigenen Gerät. Für echte HA-Steuerung muss Home Assistant
+  `cors_allowed_origins` für die Seitenadresse erlauben.
+
+Die folgende Variante mit Python-Server bietet zusätzlich serverseitige Logik
+(z.B. Key bleibt am Server, gemeinsame Sessions).
+
+## 🚀 Schnellstart (Server-Variante)
 
 ### 1. Voraussetzungen
 - Python 3.10+
