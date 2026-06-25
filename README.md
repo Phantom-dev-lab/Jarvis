@@ -5,7 +5,6 @@
 > **Sprache**, angetrieben von Claude (Anthropic) und mit optionaler Anbindung an
 > dein **Home Assistant** Smart Home.
 
-![Status](https://img.shields.io/badge/Made%20with-Claude-36d1ff)
 
 ---
 
